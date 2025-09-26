@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ------------------- User -------------------
+model User {
+  id            String   @id @default(uuid())
+  
+  // --- Temp account fields ---
+  username      String   @unique      
+  tempPassword  String?                 
+  tempExpiresAt DateTime?              
+  isTempUser    Boolean  @default(true) 
+
+  // --- Real account fields (filled after registration) ---
+  firstName     String?
+  lastName      String?
+  email         String?  @unique        
+  password      String?                  
+  phone         String?  @unique
+  avatarUrl     String?
+  isVerified    Boolean  @default(false)
+  isAdmin       Boolean @default(false)
+
+  // --- Soft delete & reset password ---
+  isDeleted     Boolean  @default(false)
+  deletedAt     DateTime?
+  resetPasswordToken          String?
+  resetPasswordTokenExpiresAt DateTime?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+   details       Detail[]  
+
+  @@index([email])
+  @@index([isDeleted])
+}
+
+model Detail {
+  id            String   @id @default(uuid())
+  productname   String
+  description   String
+
+  // --- Relations ---
+  userId        String
+  user          User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
